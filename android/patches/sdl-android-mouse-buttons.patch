@@ -1,0 +1,58 @@
+diff -ruN a/org/libsdl/app/SDLActivity.java b/org/libsdl/app/SDLActivity.java
+--- a/org/libsdl/app/SDLActivity.java	2026-10-30 10:07:48.799165161 +0300
++++ b/org/libsdl/app/SDLActivity.java	2026-10-30 10:08:45.568939387 +0300
+@@ -1519,6 +1519,11 @@
+             if (SDLActivity.isVRHeadset()) {
+                 // The Oculus Quest controller back button comes in as source mouse, so accept that
+             } else {
++                // GeneralsX @bugfix Android port 30/10/2026 One UI can send the right mouse
++                // button as Back: see GxMouseInput.
++                if (com.generalsx.zerohour.GxMouseInput.onMouseKey(event)) {
++                    return true;
++                }
+                 // on some devices key events are sent for mouse BUTTON_BACK/FORWARD presses
+                 // they are ignored here because sending them as mouse input to SDL is messy
+                 if ((keyCode == KeyEvent.KEYCODE_BACK) || (keyCode == KeyEvent.KEYCODE_FORWARD)) {
+diff -ruN a/org/libsdl/app/SDLControllerManager.java b/org/libsdl/app/SDLControllerManager.java
+--- a/org/libsdl/app/SDLControllerManager.java	2026-10-30 10:07:48.795495436 +0300
++++ b/org/libsdl/app/SDLControllerManager.java	2026-10-30 10:08:45.568557359 +0300
+@@ -719,7 +719,14 @@
+         for (int i = 0; i < pointerCount; i++) {
+             int toolType = event.getToolType(i);
+ 
+-            if (toolType == MotionEvent.TOOL_TYPE_MOUSE) {
++            // GeneralsX @bugfix Android port 30/10/2026 Button presses SDL ignored here, and mice
++            // that report another tool type: see GxMouseInput.
++            if (com.generalsx.zerohour.GxMouseInput.isMouse(event, i)) {
++                if (com.generalsx.zerohour.GxMouseInput.onGenericMouse(event, i,
++                        getEventX(event, i), getEventY(event, i), checkRelativeEvent(event))) {
++                    consumed = true;
++                    continue;
++                }
+                 switch (action) {
+                     case MotionEvent.ACTION_SCROLL:
+                         x = event.getAxisValue(MotionEvent.AXIS_HSCROLL, i);
+diff -ruN a/org/libsdl/app/SDLSurface.java b/org/libsdl/app/SDLSurface.java
+--- a/org/libsdl/app/SDLSurface.java	2026-10-30 10:07:48.795548153 +0300
++++ b/org/libsdl/app/SDLSurface.java	2026-10-30 10:08:45.568274127 +0300
+@@ -255,8 +255,9 @@
+         do {
+             int toolType = event.getToolType(i);
+ 
+-            if (toolType == MotionEvent.TOOL_TYPE_MOUSE) {
+-                int buttonState = event.getButtonState();
++            // GeneralsX @bugfix Android port 30/10/2026 Mice that report another tool type, a
++            // press with no button and a right button that arrives as Back: see GxMouseInput.
++            if (com.generalsx.zerohour.GxMouseInput.isMouse(event, i)) {
+                 boolean relative = false;
+ 
+                 // We need to check if we're in relative mouse mode and get the axis offset rather than the x/y values
+@@ -266,7 +267,7 @@
+                 y = motionListener.getEventY(event, i);
+                 relative = motionListener.inRelativeMode();
+ 
+-                SDLActivity.onNativeMouse(buttonState, action, x, y, relative);
++                com.generalsx.zerohour.GxMouseInput.onTouchMouse(event, i, x, y, relative);
+             } else if (toolType == MotionEvent.TOOL_TYPE_STYLUS || toolType == MotionEvent.TOOL_TYPE_ERASER) {
+                 pointerId = event.getPointerId(i);
+                 x = event.getX(i);

@@ -267,6 +267,9 @@ public class LogViewerActivity extends Activity {
                     // game ever started.
                     fileCount += addLogFileToZip(zos, new File(extDir, NetworkTrace.LOG_NAME));
                     fileCount += addLogFileToZip(zos, new File(extDir, NetworkTrace.LOG_NAME + ".prev"));
+                    // GeneralsX @bugfix Android port 30/10/2026 Raw mouse events and the buttons
+                    // they became (GxMouseInput), for mice that click wrongly on some devices.
+                    fileCount += addLogFileToZip(zos, new File(extDir, GxMouseInput.LOG_NAME));
                 }
                 // GeneralsX @feature Android port 23/09/2026 The Replay check's summary and
                 // the newest event record it wrote (Replays/<name>.gamestats.json), which is
