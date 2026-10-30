@@ -2955,6 +2955,12 @@ void SDL3GameEngine::pollSDL3Events(void)
 			case SDL_EVENT_FINGER_MOTION:
 			case SDL_EVENT_FINGER_UP:
 			case SDL_EVENT_FINGER_CANCELED:
+				// GeneralsX @bugfix Android port 30/10/2026 A finger SDL made up from a mouse
+				// press (SDL_HINT_MOUSE_TOUCH_EVENTS, turned off in SDL3Main.cpp) is not a touch:
+				// the mouse itself already reaches SDL3Mouse.
+				if (event.tfinger.touchID == SDL_MOUSE_TOUCHID) {
+					break;
+				}
 				// GeneralsX @bugfix Android port 11/07/2026 - A fresh touch-down or a
 				// touch-up (the clean-tap case dispatches its synthetic click on UP, see
 				// handleTouchEvent()) is a candidate to (re)open the on-screen keyboard.

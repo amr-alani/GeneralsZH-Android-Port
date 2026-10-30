@@ -1104,6 +1104,13 @@ int main(int argc, char* argv[])
 		// SDL3GameEngine.cpp; SDL's automatic touch->mouse synthesis would
 		// double-deliver finger 1 and fight the two-finger pan logic.
 		SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+		// GeneralsX @bugfix Android port 30/10/2026 And the other direction: on Android and iOS
+		// SDL turns every left mouse press into a synthetic finger as well (SDL_MOUSE_TOUCHID,
+		// on by default there). A Bluetooth mouse's click then reached the touch layer too and
+		// was judged as a tap or a long press on top of the real click, so a quick click did
+		// nothing reliable and only a held one acted (seen on a Galaxy Z Fold 8). A mouse is
+		// handled as a mouse (SDL3Mouse); fingers come only from the screen.
+		SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 #endif
 #if defined(__ANDROID__)
 		// Keep running (paused by our own lifecycle gate) instead of blocking
